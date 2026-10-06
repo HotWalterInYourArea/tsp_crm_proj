@@ -20,7 +20,7 @@ contact_client_deal = Table(
     Base.metadata,
     Column(
         'contact_client_id',
-        ForeignKey('user.id'),
+        ForeignKey('client.id'),
         primary_key=True
     ),
     Column(

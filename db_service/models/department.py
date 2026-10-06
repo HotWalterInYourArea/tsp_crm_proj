@@ -7,7 +7,7 @@ from uuid import UUID as uuid
 
 class Department(Item):
     __tablename__ = 'department'
-    name: Mapped[str] = mapped_column(String(100), nullable = False, default = "Новый отдел")
-    head_user_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('user.id'), nullable = True)
+    name: Mapped[str] = mapped_column(String(100), nullable = False, default = "Новый отдел", unique = True)
+    head_user_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('user.id'), nullable = False)
     head_user: Mapped["User"] = relationship("User", back_populates = "supervised_department")
     users: Mapped[list["User"]] = relationship("User", back_populates = "department")

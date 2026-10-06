@@ -1,7 +1,7 @@
 from db_service.models.abstract_models.item import Item
 from db_service.models.abstract_models.person import Person
 from sqlalchemy import(
-String, ForeignKey, CheckConstraint)
+String, ForeignKey, CheckConstraint, true)
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID as uuid
@@ -26,7 +26,7 @@ class User(Person):
     supervised_department: Mapped["Department"] = relationship("Department", back_populates = "head_user")
     supervised_department_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('department.id'))
     department_id: Mapped[uuid]  = mapped_column(PgUUID, ForeignKey('department.id'))
-    department_name: Mapped[uuid]  = mapped_column(PgUUID, ForeignKey('department.name'))
+    department_name: Mapped[str]  = mapped_column(String(100), ForeignKey('department.name'))
 
 
     

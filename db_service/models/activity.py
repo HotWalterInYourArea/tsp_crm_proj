@@ -15,7 +15,7 @@ class Activity(Item):
     __tablename__ = 'activity'
     description: Mapped[str] = mapped_column(Text, nullable = True)
     activity_type_name: Mapped[str] = mapped_column(String(100), ForeignKey('activity_type.name'), nullable = True)
-    activity_type_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('activity_type.name'), nullable = True)
+    activity_type_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('activity_type.id'), nullable = True)
     activity_type: Mapped["Activity_Type"] = relationship(back_populates = 'activities')
     deal_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('deal.id'), nullable = False)
     deal: Mapped["Deal"] = relationship(back_populates = 'activities')
