@@ -8,3 +8,14 @@ from db_service.models.activity import Activity, ActivityType
 from db_service.models.deal import Deal                          
 
 from db_service.models import associations      
+
+__all__ = [
+    "Item",
+    "Person",
+    "Activity", "ActivityType",
+    "Client",
+    "Deal",
+    "Department",
+    "Pipeline", "PipelineStage",
+    "User", "UserRole"
+]
