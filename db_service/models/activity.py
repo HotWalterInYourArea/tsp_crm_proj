@@ -1,23 +1,27 @@
-from db_service.models.abstract_models.item import Item
+from db_service.models.abstract_models import Item
 from sqlalchemy import(
-String, ForeignKey, Text)
+String, ForeignKey, Text, DateTime, true)
+from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID as uuid
 from sqlalchemy.sql import func
 
-class Activity_Type(Item):
-    __tablename__ = 'activity_type'
-    name: Mapped[str] = mapped_column(String(100), unique = True, nullable = False, default = "Новый тип дела")
-    activities: Mapped[list["Activity"]] = relationship(back_populates = 'activity_type')
+class ActivityType(Item):
+    __tablename__ = "activity_type"
+    default_name: str = "Новый тип дела"
+    name_unique: bool = True
+    activities: Mapped[list["Activity"]] = relationship(back_populates = "activity_type")
     
 class Activity(Item):
-    __tablename__ = 'activity'
+    __tablename__ = "activity"
+    default_name: str = "Новое дело"
+    allowed_order_by: list[str] = ["name", "created_at", "updated_at", "deadline_at"]
     description: Mapped[str] = mapped_column(Text, nullable = True)
-    activity_type_name: Mapped[str] = mapped_column(String(100), ForeignKey('activity_type.name'), nullable = True)
-    activity_type_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('activity_type.id'), nullable = True)
-    activity_type: Mapped["Activity_Type"] = relationship(back_populates = 'activities')
-    deal_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('deal.id'), nullable = False)
-    deal: Mapped["Deal"] = relationship(back_populates = 'activities')
-    user_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey('user.id'), nullable = False)
-    user: Mapped["User"] = relationship(back_populates = 'activities')
+    activity_type_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey("activity_type.id"), nullable = True)
+    activity_type: Mapped["ActivityType"] = relationship(back_populates = "activities")
+    deal_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey("deal.id"), nullable = False)
+    deal: Mapped["Deal"] = relationship(back_populates = "activities")
+    user_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey("user.id"), nullable = False)
+    user: Mapped["User"] = relationship(back_populates = "activities")
+    deadline_at: Mapped[datetime|None] = mapped_column(DateTime(timezone = true), nullable = True)

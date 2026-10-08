@@ -9,7 +9,6 @@ from uuid import uuid7, UUID as uuid
 
 class Person(Item):
     __abstract__ = True
-    name: Mapped[str] = mapped_column(String(100), nullable = False)
     email:  Mapped[str] = mapped_column(String(100), nullable = False, unique = True)
     phone:  Mapped[str] = mapped_column(String(16), nullable = True)
     __table_args__ = (
