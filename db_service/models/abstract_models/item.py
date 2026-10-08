@@ -13,8 +13,8 @@ class Item(Base):
     name_unique: bool = False
     allowed_order_by: list[str] = ["name", "created_at", "updated_at"]
     id: Mapped[uuid] = mapped_column(PgUUID, primary_key = True, default=uuid7)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone = true), nullable = False, server_default = func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone = true), nullable = False, server_default = func.now(),
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone = True), nullable = False, server_default = func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone = True), nullable = False, server_default = func.now(),
                                                    onupdate = func.now())
     @declared_attr
     def name(cls) -> Mapped[str]:

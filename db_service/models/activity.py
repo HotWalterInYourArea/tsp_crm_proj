@@ -24,4 +24,4 @@ class Activity(Item):
     deal: Mapped["Deal"] = relationship(back_populates = "activities")
     user_id: Mapped[uuid] = mapped_column(PgUUID, ForeignKey("user.id"), nullable = False)
     user: Mapped["User"] = relationship(back_populates = "activities")
-    deadline_at: Mapped[datetime|None] = mapped_column(DateTime(timezone = true), nullable = True)
+    deadline_at: Mapped[datetime|None] = mapped_column(DateTime(timezone = True), nullable = True)
