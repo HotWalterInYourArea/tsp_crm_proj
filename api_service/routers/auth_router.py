@@ -17,7 +17,7 @@ def login(
     result = AuthService(db).authenticate(form.username, form.password)
     if result is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Incorrect login or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
