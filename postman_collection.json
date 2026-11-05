@@ -1,0 +1,471 @@
+{
+  "info": {
+    "_postman_id": "b7a1c4f2-1a3b-4f6e-9d2b-tsp-crm-demo",
+    "name": "TSP CRM — Demo",
+    "description": "Full demonstration of the TSP CRM API: auth, roles, departments, users, clients, pipelines, activities, deals.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Login — admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('adminToken', json.access_token);",
+                  "pm.test('admin token saved', () => pm.expect(json.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "admin123" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login — head",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('headToken', json.access_token);",
+                  "pm.test('head token saved', () => pm.expect(json.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "head" },
+                { "key": "password", "value": "head123" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login — manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('managerToken', json.access_token);",
+                  "pm.test('manager token saved', () => pm.expect(json.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "manager" },
+                { "key": "password", "value": "manager123" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get current user (/users/me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Roles",
+      "item": [
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Create role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('newRoleId', json.id);",
+                  "pm.test('role created', () => pm.expect(json.id).to.exist);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"name\": \"Новая демо-роль\"}" },
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Delete role",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/roles/{{newRoleId}}", "host": ["{{baseUrl}}"], "path": ["roles", "{{newRoleId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Departments",
+      "item": [
+        {
+          "name": "List departments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/departments", "host": ["{{baseUrl}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Create department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('newDeptId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"name\": \"Демо-отдел\"}" },
+            "url": { "raw": "{{baseUrl}}/departments", "host": ["{{baseUrl}}"], "path": ["departments"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Users (admin)",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users?limit=50", "host": ["{{baseUrl}}"], "path": ["users"], "query": [{ "key": "limit", "value": "50" }] }
+          }
+        },
+        {
+          "name": "Create user (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('newUserId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Новый Пользователь\",\n  \"email\": \"newuser@example.com\",\n  \"phone\": \"+79001234500\",\n  \"login\": \"newuser\",\n  \"password\": \"newuser123\",\n  \"role_id\": \"<PASTE_MANAGER_ROLE_ID>\",\n  \"department_id\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Department Head — create/update/delete user in own dept",
+      "item": [
+        {
+          "name": "Create user in supervised dept (head)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('headCreatedUserId', json.id);",
+                  "pm.test('created in own dept', () => pm.expect(pm.response.code).to.eql(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{headToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Мой Сотрудник\",\n  \"email\": \"mysubordinate@example.com\",\n  \"phone\": \"+79001234501\",\n  \"login\": \"subordinate\",\n  \"password\": \"sub12345\",\n  \"role_id\": \"<PASTE_MANAGER_ROLE_ID>\",\n  \"department_id\": \"<PASTE_SALES_DEPT_ID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Attempt create user in OTHER dept (head, expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{headToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Чужой\",\n  \"email\": \"otherdept@example.com\",\n  \"login\": \"other\",\n  \"password\": \"other123\",\n  \"role_id\": \"<PASTE_MANAGER_ROLE_ID>\",\n  \"department_id\": \"<PASTE_SUPPORT_DEPT_ID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Delete user from supervised dept (head)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{headToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/{{headCreatedUserId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{headCreatedUserId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Clients",
+      "item": [
+        {
+          "name": "List clients",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/clients?limit=50", "host": ["{{baseUrl}}"], "path": ["clients"], "query": [{ "key": "limit", "value": "50" }] }
+          }
+        },
+        {
+          "name": "Create client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('newClientId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ООО Демо\",\n  \"email\": \"democlient@example.com\",\n  \"phone\": \"+79001234502\",\n  \"responsible_user_id\": \"<PASTE_MANAGER_USER_ID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/clients", "host": ["{{baseUrl}}"], "path": ["clients"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Pipelines",
+      "item": [
+        {
+          "name": "List pipelines",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/pipelines", "host": ["{{baseUrl}}"], "path": ["pipelines"] }
+          }
+        },
+        {
+          "name": "List stages of pipeline",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/pipelines/<PASTE_PIPELINE_ID>/stages", "host": ["{{baseUrl}}"], "path": ["pipelines", "<PASTE_PIPELINE_ID>", "stages"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Deals",
+      "item": [
+        {
+          "name": "List deals",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/deals?limit=20", "host": ["{{baseUrl}}"], "path": ["deals"], "query": [{ "key": "limit", "value": "20" }] }
+          }
+        },
+        {
+          "name": "Deal stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/deals/stats", "host": ["{{baseUrl}}"], "path": ["deals", "stats"] }
+          }
+        },
+        {
+          "name": "Create deal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('newDealId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Демо-сделка\",\n  \"main_client_id\": \"<PASTE_CLIENT_ID>\",\n  \"assigned_by_id\": \"<PASTE_MANAGER_USER_ID>\",\n  \"created_by_id\": \"<PASTE_MANAGER_USER_ID>\",\n  \"pipeline_id\": \"<PASTE_PIPELINE_ID>\",\n  \"pipeline_stage_id\": \"<PASTE_STAGE_ID>\",\n  \"budget\": 100000,\n  \"contact_client_ids\": [],\n  \"supervisor_ids\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/deals", "host": ["{{baseUrl}}"], "path": ["deals"] }
+          }
+        },
+        {
+          "name": "Update deal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"budget\": 150000, \"name\": \"Демо-сделка (обновлено)\"}" },
+            "url": { "raw": "{{baseUrl}}/deals/{{newDealId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{newDealId}}"] }
+          }
+        },
+        {
+          "name": "Get deal by id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/deals/{{newDealId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{newDealId}}"] }
+          }
+        },
+        {
+          "name": "Delete deal",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/deals/{{newDealId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{newDealId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Activities",
+      "item": [
+        {
+          "name": "List activity types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/activity-types", "host": ["{{baseUrl}}"], "path": ["activity-types"] }
+          }
+        },
+        {
+          "name": "List activities for deal",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/activities?deal_id=<PASTE_DEAL_ID>", "host": ["{{baseUrl}}"], "path": ["activities"], "query": [{ "key": "deal_id", "value": "<PASTE_DEAL_ID>" }] }
+          }
+        },
+        {
+          "name": "Create activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Демо-звонок\",\n  \"deal_id\": \"<PASTE_DEAL_ID>\",\n  \"user_id\": \"<PASTE_MANAGER_USER_ID>\",\n  \"activity_type_id\": \"<PASTE_ACTIVITY_TYPE_ID>\",\n  \"deadline_at\": \"2026-12-31T23:59:59Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/activities", "host": ["{{baseUrl}}"], "path": ["activities"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" },
+    { "key": "adminToken", "value": "" },
+    { "key": "headToken", "value": "" },
+    { "key": "managerToken", "value": "" },
+    { "key": "newRoleId", "value": "" },
+    { "key": "newDeptId", "value": "" },
+    { "key": "newUserId", "value": "" },
+    { "key": "headCreatedUserId", "value": "" },
+    { "key": "newClientId", "value": "" },
+    { "key": "newDealId", "value": "" }
+  ]
+}

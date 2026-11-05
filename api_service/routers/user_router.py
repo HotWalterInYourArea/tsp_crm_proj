@@ -39,8 +39,8 @@ def create_user(
     service = UserService(db)
 
     try:
-        if current_user.role.name == "Администратор":
-            return service.create_user(payload)
+        if current_user.user_role.name == "Администратор":
+            return service.create(payload)
         else:
             return service.create_user_by_head(payload, current_user)
 
@@ -66,7 +66,7 @@ def delete_user(
 ):
     service = UserService(db)
 
-    if current_user.role.name == "Администратор":
+    if current_user.user_role.name == "Администратор":
         try:
             service.delete(user_id)
         except ValueError as e:

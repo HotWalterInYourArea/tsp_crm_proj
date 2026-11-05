@@ -15,8 +15,8 @@ class UserRoleUpdate(BaseModel):
 class UserRoleRead(UserRoleBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserBase(BaseModel):
@@ -44,5 +44,5 @@ class UserUpdate(BaseModel):
 class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime

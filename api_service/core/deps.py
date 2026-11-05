@@ -32,13 +32,13 @@ def get_current_user(
 
 
 def require_admin(current: User = Depends(get_current_user)) -> User:
-    if not current.role or current.role.name != "Администратор":
+    if not current.user_role or current.user_role.name != "Администратор":
         raise HTTPException(status_code=403, detail="Admin role required")
     return current
 
 def require_admin_or_head(current: User = Depends(get_current_user)) -> User:
-    is_admin = current.role and current.role.name == "Администратор"
-    is_head = bool(current.supervised_departments)
+    is_admin = current.user_role and current.user_role.name == "Администратор"
+    is_head = bool(current.supervised_department)
     
     if not (is_admin or is_head):
         raise HTTPException(

@@ -10,4 +10,4 @@ for r in all_routers:
 
 @app.get("/")
 def root():
-    return {"status": "ok", "docs": "/docs"}
+    return {"Hello"}

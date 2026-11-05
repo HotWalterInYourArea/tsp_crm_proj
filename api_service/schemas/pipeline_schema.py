@@ -15,8 +15,8 @@ class PipelineUpdate(BaseModel):
 class PipelineRead(PipelineBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime
 
 
 class PipelineStageBase(BaseModel):
@@ -33,5 +33,5 @@ class PipelineStageUpdate(BaseModel):
 class PipelineStageRead(PipelineStageBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime

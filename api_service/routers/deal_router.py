@@ -25,7 +25,7 @@ def list_deals(
     max_budget: int | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
-    order_by: str = "date_created",
+    order_by: str = "created_at",
     order_desc: bool = True,
     db: Session = Depends(get_db),
 ):

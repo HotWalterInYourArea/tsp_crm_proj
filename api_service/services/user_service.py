@@ -78,13 +78,12 @@ class UserService:
         current_head: User,
     ) -> UserRead:
 
-        supervised_dept_ids = {d.id for d in current_head.supervised_departments}
-        if payload.department_id not in supervised_dept_ids:
+        if payload.department_id != current_head.supervised_department.id:
             raise PermissionError(
                 "You can only create users in departments you supervise"
             )
 
-        return self._create_user(payload)
+        return self.create(payload)
 
     def create(self, payload: UserCreate) -> UserRead:
         if self.repo.get_by_email(payload.email):
@@ -138,7 +137,7 @@ class UserService:
         if not target_user:
             raise ValueError("User not found")
 
-        if target_user.department_id not in [d.id for d in current_head.supervised_departments]:
+        if target_user.department_id != current_head.supervised_department.id:
             raise PermissionError("You can only delete users from departments you supervise")
 
         if target_user.id == current_head.id:

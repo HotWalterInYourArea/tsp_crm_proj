@@ -18,5 +18,5 @@ class DepartmentUpdate(BaseModel):
 class DepartmentRead(DepartmentBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime

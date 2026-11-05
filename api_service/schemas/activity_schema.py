@@ -15,8 +15,8 @@ class ActivityTypeUpdate(BaseModel):
 class ActivityTypeRead(ActivityTypeBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime
 
 
 class ActivityBase(BaseModel):
@@ -39,5 +39,5 @@ class ActivityUpdate(BaseModel):
 class ActivityRead(ActivityBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    date_created: datetime
-    date_updated: datetime
+    created_at: datetime
+    updated_at: datetime
