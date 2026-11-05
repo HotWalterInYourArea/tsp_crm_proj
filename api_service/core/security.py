@@ -11,11 +11,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 from passlib.context import CryptContext
 
-# db_service/core/security.py
 import bcrypt
 
 def hash_password(password: str) -> str:
-    # Convert to bytes and truncate to 72 bytes
     pwd_bytes = password.encode('utf-8')[:72]
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')

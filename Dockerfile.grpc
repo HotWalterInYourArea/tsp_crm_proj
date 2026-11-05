@@ -1,0 +1,28 @@
+FROM python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+RUN python -m grpc_tools.protoc \
+    -I grpc_service/proto \
+    --python_out=grpc_service/proto \
+    --grpc_python_out=grpc_service/proto \
+    grpc_service/proto/commission.proto \
+ && sed -i 's/^import commission_pb2/from grpc_service.proto import commission_pb2/' \
+    grpc_service/proto/commission_pb2_grpc.py
+
+EXPOSE 50051
+
+CMD ["python", "-m", "grpc_service.server"]

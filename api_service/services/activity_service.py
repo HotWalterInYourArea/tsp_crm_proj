@@ -8,21 +8,40 @@ from api_service.schemas.activity_schema import (
     ActivityCreate, ActivityUpdate, ActivityRead,
     ActivityTypeCreate, ActivityTypeUpdate, ActivityTypeRead,
 )
-
+from api_service.services._cached import (
+    get_cached_item, set_cached_item,
+    get_cached_list, set_cached_list,
+    invalidate_item, invalidate_all,
+)
 
 class ActivityTypeService:
+    PREFIX = "activity_types"
+
     def __init__(self, session: Session):
         self.session = session
         self.repo = ActivityTypeRepository(session)
 
     def get(self, tid: uuid.UUID) -> ActivityTypeRead:
+        cached = get_cached_item(self.PREFIX, tid, ActivityTypeRead.model_validate)
+        if cached is not None:
+            return cached
+
         orm = self.repo.get(tid)
         if orm is None:
             raise ValueError(f"ActivityType {tid} not found")
-        return ActivityTypeRead.model_validate(orm)
+        dto = ActivityTypeRead.model_validate(orm)
+        set_cached_item(self.PREFIX, tid, dto.model_dump(mode="json"))
+        return dto
 
     def list(self, **kw) -> list[ActivityTypeRead]:
-        return [ActivityTypeRead.model_validate(o) for o in self.repo.list(**kw)]
+        cached = get_cached_list(self.PREFIX, kw, ActivityTypeRead.model_validate)
+        if cached is not None:
+            return cached
+
+        orms = self.repo.list(**kw)
+        dtos = [ActivityTypeRead.model_validate(o) for o in orms]
+        set_cached_list(self.PREFIX, kw, [d.model_dump(mode="json") for d in dtos])
+        return dtos
 
     def create(self, payload: ActivityTypeCreate) -> ActivityTypeRead:
         if self.repo.get_by_name(payload.name):
@@ -30,6 +49,7 @@ class ActivityTypeService:
         orm = self.repo.add(self.repo.model(**payload.model_dump()))
         self.session.commit()
         self.session.refresh(orm)
+        invalidate_all(self.PREFIX)
         return ActivityTypeRead.model_validate(orm)
 
     def update(self, tid: uuid.UUID, payload: ActivityTypeUpdate) -> ActivityTypeRead:
@@ -43,6 +63,7 @@ class ActivityTypeService:
             setattr(orm, f, v)
         self.session.commit()
         self.session.refresh(orm)
+        invalidate_item(self.PREFIX, tid)
         return ActivityTypeRead.model_validate(orm)
 
     def delete(self, tid: uuid.UUID) -> None:
@@ -53,9 +74,12 @@ class ActivityTypeService:
             raise ValueError("Cannot delete type with activities")
         self.repo.delete(orm)
         self.session.commit()
+        invalidate_item(self.PREFIX, tid)
 
 
 class ActivityService:
+    PREFIX = "activities"
+
     def __init__(self, session: Session):
         self.session = session
         self.repo = ActivityRepository(session)
@@ -64,16 +88,26 @@ class ActivityService:
         self.type_repo = ActivityTypeRepository(session)
 
     def get(self, aid: uuid.UUID) -> ActivityRead:
+        cached = get_cached_item(self.PREFIX, aid, ActivityRead.model_validate)
+        if cached is not None:
+            return cached
+
         orm = self.repo.get(aid)
         if orm is None:
             raise ValueError(f"Activity {aid} not found")
-        return ActivityRead.model_validate(orm)
-
-    def list(self, **kw) -> list[ActivityRead]:
-        return [ActivityRead.model_validate(o) for o in self.repo.list(**kw)]
+        dto = ActivityRead.model_validate(orm)
+        set_cached_item(self.PREFIX, aid, dto.model_dump(mode="json"))
+        return dto
 
     def list_by_deal(self, deal_id: uuid.UUID) -> list[ActivityRead]:
-        return [ActivityRead.model_validate(o) for o in self.repo.list_by_deal(deal_id)]
+        cached = get_cached_list(self.PREFIX, {"deal_id": deal_id}, ActivityRead.model_validate)
+        if cached is not None:
+            return cached
+
+        orms = self.repo.list_by_deal(deal_id)
+        dtos = [ActivityRead.model_validate(o) for o in orms]
+        set_cached_list(self.PREFIX, {"deal_id": deal_id}, [d.model_dump(mode="json") for d in dtos])
+        return dtos
 
     def create(self, payload: ActivityCreate) -> ActivityRead:
         if self.deal_repo.get(payload.deal_id) is None:
@@ -85,6 +119,7 @@ class ActivityService:
         orm = self.repo.add(self.repo.model(**payload.model_dump()))
         self.session.commit()
         self.session.refresh(orm)
+        invalidate_all(self.PREFIX)
         return ActivityRead.model_validate(orm)
 
     def update(self, aid: uuid.UUID, payload: ActivityUpdate) -> ActivityRead:
@@ -102,6 +137,7 @@ class ActivityService:
             setattr(orm, f, v)
         self.session.commit()
         self.session.refresh(orm)
+        invalidate_item(self.PREFIX, aid)
         return ActivityRead.model_validate(orm)
 
     def delete(self, aid: uuid.UUID) -> None:
@@ -110,3 +146,4 @@ class ActivityService:
             raise ValueError(f"Activity {aid} not found")
         self.repo.delete(orm)
         self.session.commit()
+        invalidate_item(self.PREFIX, aid)

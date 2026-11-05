@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from api_service.core.validators import normalize_phone, is_valid_phone
 
 class UserRoleBase(BaseModel):
     name: str = Field(default="Новая роль", max_length=100)
@@ -26,6 +26,15 @@ class UserBase(BaseModel):
     login: str = Field(max_length=100)
     role_id: uuid.UUID
     department_id: uuid.UUID | None = None
+    @field_validator("phone", mode="before")
+    @classmethod
+    def _normalize_and_validate_phone(cls, v):
+        if v is None or v == "":
+            return None
+        normalized = normalize_phone(v)
+        if not is_valid_phone(normalized):
+            raise ValueError("Phone must contain only digits with an optional leading '+'")
+        return normalized
 
 
 class UserCreate(UserBase):
@@ -39,6 +48,15 @@ class UserUpdate(BaseModel):
     password: str | None = Field(default=None, min_length=6)
     role_id: uuid.UUID | None = None
     department_id: uuid.UUID | None = None
+    @field_validator("phone", mode="before")
+    @classmethod
+    def _normalize_and_validate_phone(cls, v):
+        if v is None or v == "":
+            return None
+        normalized = normalize_phone(v)
+        if not is_valid_phone(normalized):
+            raise ValueError("Phone must contain only digits with an optional leading '+'")
+        return normalized
 
 
 class UserRead(UserBase):

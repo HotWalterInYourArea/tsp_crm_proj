@@ -7,6 +7,7 @@ from api_service.routers.pipeline_router import router as pipelines_router
 from api_service.routers.activity_type_router import router as activity_types_router
 from api_service.routers.activity_router import router as activities_router
 from api_service.routers.deal_router import router as deals_router
+from api_service.routers.analytics_router import router as analytics_router
 
 all_routers = [
     auth_router,
@@ -18,4 +19,5 @@ all_routers = [
     activity_types_router,
     activities_router,
     deals_router,
+    analytics_router
 ]

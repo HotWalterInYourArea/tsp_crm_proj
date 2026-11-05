@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload, joinedload
 
 from db_service.models.deal import Deal
 from db_service.repositories.item_repository import ItemRepository
-
+from sqlalchemy import func, text
 
 class DealRepository(ItemRepository[Deal]):
     model = Deal
@@ -163,3 +163,24 @@ class DealRepository(ItemRepository[Deal]):
             updated_from=None, updated_to=None,
         )
         return int(self.session.execute(stmt).scalar_one())
+
+    def list_by_assigned_users(self, user_ids: list[uuid.UUID]) -> list[Deal]:
+            if not user_ids:
+                return []
+            stmt = select(Deal).where(Deal.assigned_by_id.in_(user_ids))
+            return list(self.session.execute(stmt).scalars().all())
+
+    def get_monthly_budget_totals(self, months_back: int = 6) -> list[int]:
+        stmt = (
+            select(
+                func.date_trunc('month', Deal.created_at).label('month'),
+                func.sum(Deal.budget).label('total')
+            )
+            .where(Deal.budget.isnot(None))
+            .where(Deal.created_at >= func.now() - text(f"INTERVAL '{months_back} months'"))
+            .group_by(func.date_trunc('month', Deal.created_at))
+            .order_by(func.date_trunc('month', Deal.created_at))
+        )
+        
+        results = self.session.execute(stmt).all()
+        return [int(row.total) for row in results]

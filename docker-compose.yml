@@ -1,0 +1,74 @@
+# docker-compose.yml
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tsp_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-tsp_crm}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - tsp_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tsp_crm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  redis:
+    image: redis:7-alpine
+    container_name: tsp_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - tsp_redis_data:/data
+
+  grpc:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    container_name: tsp_grpc
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "${GRPC_PORT:-50051}:50051"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.create_connection(('localhost',50051),2)\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: tsp_api
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-tsp_crm}
+      
+      GRPC_TARGET: grpc:50051
+      
+
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      grpc:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  tsp_db_data:
+  tsp_redis_data: 

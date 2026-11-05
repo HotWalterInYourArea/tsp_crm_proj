@@ -8,9 +8,15 @@ from db_service.repositories.deal_repository import DealRepository
 from db_service.repositories.pipeline_repository import PipelineRepository, PipelineStageRepository
 from db_service.repositories.user_repository import UserRepository
 from api_service.schemas.deal_schema import DealCreate, DealUpdate, DealRead
-
-
+from api_service.core.cache import cache_get, cache_set, cache_delete_pattern
+from api_service.services._cached import (
+    get_cached_item, set_cached_item,
+    get_cached_list, set_cached_list,
+    invalidate_item, invalidate_all,
+)
 class DealService:
+    PREFIX = "deals"
+
     def __init__(self, session: Session):
         self.session = session
         self.repo = DealRepository(session)
@@ -19,21 +25,39 @@ class DealService:
         self.pipe_repo = PipelineRepository(session)
         self.stage_repo = PipelineStageRepository(session)
 
+    def _invalidate_analytics(self) -> None:
+        cache_delete_pattern("analytics:*")
+
 
     def get(self, deal_id: uuid.UUID) -> DealRead:
+        cached = get_cached_item(self.PREFIX, deal_id, DealRead.model_validate)
+        if cached is not None:
+            return cached
+
         orm = self.repo.get(deal_id)
         if orm is None:
             raise ValueError(f"Deal {deal_id} not found")
-        return DealRead.model_validate(orm)
+
+        dto = DealRead.model_validate(orm)
+        set_cached_item(self.PREFIX, deal_id, dto.model_dump(mode="json"))
+        return dto
 
     def list(self, **kw) -> list[DealRead]:
-        return [DealRead.model_validate(o) for o in self.repo.list(**kw)]
+        cached = get_cached_list(self.PREFIX, kw, DealRead.model_validate)
+        if cached is not None:
+            return cached
+
+        orms = self.repo.list(**kw)
+        dtos = [DealRead.model_validate(o) for o in orms]
+        set_cached_list(self.PREFIX, kw, [d.model_dump(mode="json") for d in dtos], ttl=60)
+        return dtos
 
     def count(self, **kw) -> int:
         return self.repo.count(**kw)
 
     def total_budget(self, **kw) -> int:
         return self.repo.total_budget(**kw)
+
 
 
     def create(self, payload: DealCreate) -> DealRead:
@@ -56,6 +80,10 @@ class DealService:
         self.repo.add(orm)
         self.session.commit()
         self.session.refresh(orm)
+
+        invalidate_all(self.PREFIX)
+        self._invalidate_analytics()
+
         return DealRead.model_validate(orm)
 
     def update(self, deal_id: uuid.UUID, payload: DealUpdate) -> DealRead:
@@ -84,6 +112,10 @@ class DealService:
 
         self.session.commit()
         self.session.refresh(orm)
+
+        invalidate_item(self.PREFIX, deal_id)
+        self._invalidate_analytics()
+
         return DealRead.model_validate(orm)
 
     def delete(self, deal_id: uuid.UUID) -> None:
@@ -92,6 +124,10 @@ class DealService:
             raise ValueError(f"Deal {deal_id} not found")
         self.repo.delete(orm)
         self.session.commit()
+
+
+        invalidate_item(self.PREFIX, deal_id)
+        self._invalidate_analytics()
 
 
     def _validate_refs(self, payload: DealCreate) -> None:
@@ -120,4 +156,4 @@ class DealService:
         users = [self.user_repo.get(i) for i in ids]
         if any(u is None for u in users):
             raise ValueError("Some user IDs do not exist")
-        return users  
+        return users

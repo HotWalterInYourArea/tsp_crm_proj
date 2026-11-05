@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package commission;
+
+service CommissionService {
+  rpc CalculateCommission(CommissionRequest) returns (CommissionResponse);
+
+  rpc CalculateDepartmentBonus(DepartmentBonusRequest) returns (DepartmentBonusResponse);
+
+  rpc ForecastBudget(ForecastRequest) returns (ForecastResponse);
+}
+
+message CommissionRequest {
+  int64 budget = 1;              
+  double rate = 2;                
+  string user_role = 3;           
+}
+
+message CommissionResponse {
+  int64 commission_amount = 1;
+  double effective_rate = 2;      
+}
+
+message DepartmentBonusRequest {
+  repeated int64 deal_budgets = 1;
+  int32 user_count = 2;
+}
+
+message DepartmentBonusResponse {
+  int64 total_budget = 1;
+  int64 head_bonus = 2;           
+  int64 per_user_bonus = 3;       
+}
+
+message ForecastRequest {
+  repeated int64 monthly_totals = 1;
+  int32 months_ahead = 2;
+}
+
+message ForecastResponse {
+  repeated int64 forecast = 1;
+  double trend = 2;
+  }

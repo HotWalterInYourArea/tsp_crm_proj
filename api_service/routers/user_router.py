@@ -37,25 +37,42 @@ def create_user(
     current_user: User = Depends(require_admin_or_head),
 ):
     service = UserService(db)
-
     try:
         if current_user.user_role.name == "Администратор":
-            return service.create(payload)
-        else:
-            return service.create_user_by_head(payload, current_user)
-
+            return service.create_user_by_admin(payload)
+        return service.create_user_by_head(payload, current_user)
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        msg = str(e)
+        if "already in use" in msg or "already exists" in msg:
+            raise HTTPException(status_code=409, detail=msg)
+        raise HTTPException(status_code=400, detail=msg)
 
 
-@router.patch("/{user_id}", response_model=UserRead, dependencies=[Depends(require_admin)])
-def update_user(user_id: uuid.UUID, payload: UserUpdate, db: Session = Depends(get_db)):
+@router.patch("/{user_id}", response_model=UserRead)
+def update_user(
+    user_id: uuid.UUID,
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = UserService(db)
     try:
-        return UserService(db).update(user_id, payload)
+        if current_user.user_role.name == "Администратор":
+            return service.update_user_by_admin(user_id, payload)
+        if current_user.id != user_id and bool(current_user.supervised_departments):
+            return service.update_user_by_head(user_id, payload, current_user)
+        if current_user.id == user_id:
+            return service.update_self(current_user, payload)
+        raise HTTPException(403, "You can only update your own profile")
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
-        raise HTTPException(404, str(e))
+        msg = str(e)
+        if "already in use" in msg or "already exists" in msg:
+            raise HTTPException(status_code=409, detail=msg)
+        raise HTTPException(status_code=400, detail=msg)
 
 
 @router.delete("/{user_id}", status_code=204)
