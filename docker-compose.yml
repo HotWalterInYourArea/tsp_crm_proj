@@ -30,6 +30,32 @@ services:
     volumes:
       - tsp_redis_data:/data
 
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672" 
+      - "15672:15672"    
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  notification:
+    build: ./notification_service
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_EXCHANGE: crm.events
+      RABBITMQ_QUEUE: q.notifications
+      RABBITMQ_ROUTING_KEYS: deal.created,activity.created
+      JWT_SECRET: ${SECRET_KEY}
+      ALLOW_QUERY_TOKEN: "true"
+    ports:
+      - "8001:8001"
   grpc:
     build:
       context: .
@@ -59,6 +85,9 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_EXCHANGE: crm.events
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -67,6 +96,8 @@ services:
       grpc:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
   nginx:
       image: nginx:1.27-alpine
@@ -86,4 +117,5 @@ services:
       restart: unless-stopped
 volumes:
   tsp_db_data:
-  tsp_redis_data: 
+  tsp_redis_data:
+  rabbitmq_data:

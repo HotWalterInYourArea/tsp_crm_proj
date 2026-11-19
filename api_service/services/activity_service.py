@@ -8,6 +8,7 @@ from api_service.schemas.activity_schema import (
     ActivityCreate, ActivityUpdate, ActivityRead,
     ActivityTypeCreate, ActivityTypeUpdate, ActivityTypeRead,
 )
+from api_service.services.notification_service import publisher
 from api_service.services._cached import (
     get_cached_item, set_cached_item,
     get_cached_list, set_cached_list,
@@ -120,6 +121,23 @@ class ActivityService:
         self.session.commit()
         self.session.refresh(orm)
         invalidate_all(self.PREFIX)
+        try:
+            deal = self.deal_repo.get(orm.deal_id)
+            author = self.user_repo.get(orm.user_id) if getattr(orm, "user_id", None) else None
+            if deal is not None and author is not None:
+                publisher.publish_activity_created(
+                    activity_id=orm.id,
+                    activity_name=orm.name,
+                    activity_type=getattr(orm, "type", None),
+                    due_at=getattr(orm, "due_at", None),
+                    deal=deal,
+                    author=author,
+                )
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to publish activity.created for %s", orm.id
+            )
         return ActivityRead.model_validate(orm)
 
     def update(self, aid: uuid.UUID, payload: ActivityUpdate) -> ActivityRead:

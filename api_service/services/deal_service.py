@@ -9,6 +9,7 @@ from db_service.repositories.pipeline_repository import PipelineRepository, Pipe
 from db_service.repositories.user_repository import UserRepository
 from api_service.schemas.deal_schema import DealCreate, DealUpdate, DealRead
 from api_service.core.cache import cache_get, cache_set, cache_delete_pattern
+from api_service.services.notification_service import publisher
 from api_service.services._cached import (
     get_cached_item, set_cached_item,
     get_cached_list, set_cached_list,
@@ -83,7 +84,15 @@ class DealService:
 
         invalidate_all(self.PREFIX)
         self._invalidate_analytics()
-
+        try:
+            creator = self.user_repo.get(orm.created_by_id)
+            if creator is not None:
+                publisher.publish_deal_created(orm, creator)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to publish deal.created for %s", orm.id
+            )
         return DealRead.model_validate(orm)
 
     def update(self, deal_id: uuid.UUID, payload: DealUpdate) -> DealRead:

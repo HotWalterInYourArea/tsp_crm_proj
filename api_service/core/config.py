@@ -19,7 +19,16 @@ class Settings(BaseSettings):
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
-    CACHE_TTL_SECONDS: int = 60                    # ← new
+    CACHE_TTL_SECONDS: int = 60    
+    
+    # RabbitMQ — то, что использует NotificationPublisher
+    rabbitmq_url: str = "amqp://guest:guest@rabbitmq:5672/"
+    rabbitmq_exchange: str = "crm.events"
+    rabbitmq_exchange_type: str = "topic"
+
+    # routing keys
+    rk_deal_created: str = "deal.created"
+    rk_activity_created: str = "activity.created"                # ← new
 
 
 settings = Settings()
