@@ -16,6 +16,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 5000
 
-CMD ["sh", "-c", "python -m alembic -c db_service/alembic.ini upgrade head && uvicorn api_service.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python -m alembic -c db_service/alembic.ini upgrade head && python -m api_service.services.seed_demo && uvicorn api_service.main:app --host 0.0.0.0 --port 8000"]

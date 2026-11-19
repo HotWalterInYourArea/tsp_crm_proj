@@ -1,8 +1,6 @@
-import statistics
-
 from grpc_service.proto import commission_pb2, commission_pb2_grpc
-
-
+import logging
+logger = logging.getLogger(__name__)
 class CommissionServicer(commission_pb2_grpc.CommissionServiceServicer):
 
     # ---------- 1. Commission ----------
@@ -20,8 +18,9 @@ class CommissionServicer(commission_pb2_grpc.CommissionServiceServicer):
             rate *= 1.2          
         elif request.user_role != "Менеджер":
             rate = 0.0           
-
+        
         amount = int(request.budget * rate)
+        logger.info(f"Calculated commission: {amount}")
         return commission_pb2.CommissionResponse(
             commission_amount=amount,
             effective_rate=rate,
@@ -32,6 +31,7 @@ class CommissionServicer(commission_pb2_grpc.CommissionServiceServicer):
         head_bonus = int(total * 0.05)                   
         remaining = total - head_bonus
         per_user = int(remaining / max(request.user_count - 1, 1))
+        logger.info(f"Bonus calculated: total={total}, head_bonus={head_bonus}")
         return commission_pb2.DepartmentBonusResponse(
             total_budget=total,
             head_bonus=head_bonus,
@@ -60,4 +60,5 @@ class CommissionServicer(commission_pb2_grpc.CommissionServiceServicer):
             max(0, int(intercept + slope * (n + i)))
             for i in range(request.months_ahead)
         ]
+        logger.info(f"Forecast generated: trend={slope}, points={forecast}")
         return commission_pb2.ForecastResponse(forecast=forecast, trend=slope)

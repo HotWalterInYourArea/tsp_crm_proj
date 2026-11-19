@@ -61,7 +61,7 @@ def update_user(
     try:
         if current_user.user_role.name == "Администратор":
             return service.update_user_by_admin(user_id, payload)
-        if current_user.id != user_id and bool(current_user.supervised_departments):
+        if current_user.id != user_id and bool(current_user.supervised_department):
             return service.update_user_by_head(user_id, payload, current_user)
         if current_user.id == user_id:
             return service.update_self(current_user, payload)

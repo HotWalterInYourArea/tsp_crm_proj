@@ -124,8 +124,8 @@ class UserService:
         return UserRead.model_validate(orm)
 
     def create_user_by_head(self, payload: UserCreate, current_head: User) -> UserRead:
-        supervised_dept_ids = {d.id for d in current_head.supervised_departments}
-        if payload.department_id not in supervised_dept_ids:
+        supervised_dept_ids = current_head.supervised_department.id
+        if payload.department_id !=  supervised_dept_ids:
             raise PermissionError("You can only create users in departments you supervise")
         orm = self._create_user_impl(payload)
         invalidate_all(self.PREFIX)
@@ -170,8 +170,8 @@ class UserService:
         if orm is None:
             raise ValueError(f"User {user_id} not found")
 
-        supervised_dept_ids = {d.id for d in current_head.supervised_departments}
-        if orm.department_id not in supervised_dept_ids:
+        supervised_dept_ids = current_head.supervised_department
+        if orm.department_id != supervised_dept_ids:
             raise PermissionError("You can only edit users in departments you supervise")
         if payload.department_id is not None and payload.department_id != orm.department_id:
             raise PermissionError("You cannot change the user's department")
@@ -209,8 +209,8 @@ class UserService:
         orm = self.repo.get(user_id)
         if orm is None:
             raise ValueError(f"User {user_id} not found")
-        supervised_dept_ids = {d.id for d in current_head.supervised_departments}
-        if orm.department_id not in supervised_dept_ids:
+        supervised_dept_ids = current_head.supervised_department.id
+        if orm.department_id != supervised_dept_ids:
             raise PermissionError("You can only delete users in departments you supervise")
         if orm.id == current_head.id:
             raise ValueError("You cannot delete yourself")

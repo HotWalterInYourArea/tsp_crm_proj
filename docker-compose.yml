@@ -68,7 +68,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-
+  nginx:
+      image: nginx:1.27-alpine
+      container_name: tsp_nginx
+      ports:
+        - "${NGINX_PORT:-80}:80"
+      volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      depends_on:
+        api:
+          condition: service_started
+      healthcheck:
+        test: ["CMD", "wget", "--quiet", "--spider", "http://localhost/healthz"]
+        interval: 10s
+        timeout: 3s
+        retries: 5
+      restart: unless-stopped
 volumes:
   tsp_db_data:
   tsp_redis_data: 
